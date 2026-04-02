@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "UserStats": {
+      "title": "User Stats",
+      "description": "Rowan's current progress, points, and streaks.",
+      "type": "object",
+      "properties": {
+        "current_points": { "type": "integer", "description": "Total points earned." },
+        "target_goal": { "type": "integer", "description": "The point goal for the current reward." },
+        "streak_days": { "type": "integer", "description": "Consecutive days of task completion." },
+        "last_completion_date": { "type": "string", "format": "date-time", "description": "Last time a task was completed." },
+        "active_reward": { "type": "string", "description": "The reward Rowan is working towards." },
+        "visual_theme": { "type": "string", "description": "The current visual theme (e.g., IPL Cricket)." }
+      },
+      "required": ["current_points", "target_goal", "streak_days"]
+    },
+    "Rule": {
+      "title": "Rule",
+      "description": "A chore or habit rule defined by Ankit.",
+      "type": "object",
+      "properties": {
+        "task_name": { "type": "string", "description": "The name of the task." },
+        "action": { "type": "string", "description": "The detailed instruction for the task." },
+        "point_value": { "type": "integer", "description": "Points awarded for completion." },
+        "validation_method": { "type": "string", "enum": ["Image", "Timer", "Manual"], "description": "How the task is verified." },
+        "emoji": { "type": "string", "description": "Emoji icon for the rule." },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["task_name", "action", "point_value", "validation_method"]
+    },
+    "HistoryItem": {
+      "title": "History Item",
+      "description": "A log of completed tasks.",
+      "type": "object",
+      "properties": {
+        "task": { "type": "string" },
+        "points_awarded": { "type": "integer" },
+        "multiplier": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["APPROVED", "REJECTED"] }
+      },
+      "required": ["task", "points_awarded", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/stats/current": {
+      "schema": "UserStats",
+      "description": "Rowan's current stats."
+    },
+    "/users/{userId}/rules": {
+      "schema": "Rule",
+      "description": "Collection of active rules."
+    },
+    "/users/{userId}/history": {
+      "schema": "HistoryItem",
+      "description": "Log of all actions."
+    }
+  }
+}
