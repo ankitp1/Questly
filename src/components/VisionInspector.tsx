@@ -54,15 +54,15 @@ export function VisionInspector({ type, onSuccess, onCancel, kidName }: VisionIn
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
     >
       <div className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl relative">
-        <div className="p-6 border-b-2 border-gray-100 flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Camera className="text-blue-500" />
-            {type} Inspector
+        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-playful-gradient text-white">
+          <h3 className="text-2xl font-black flex items-center gap-3 uppercase tracking-tighter drop-shadow-md">
+            <Camera className="text-white" />
+            {type} Scanner
           </h3>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 font-bold">Close</button>
+          <button onClick={onCancel} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all font-black text-xs uppercase tracking-widest">Cancel</button>
         </div>
 
-        <div className="relative aspect-video bg-gray-900">
+        <div className="relative aspect-video bg-slate-900">
           {!capturedImage ? (
             <Webcam
               {...({
@@ -82,77 +82,80 @@ export function VisionInspector({ type, onSuccess, onCancel, kidName }: VisionIn
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-blue-600/40 backdrop-blur-md text-white"
+                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md text-white p-10 text-center"
               >
-                <Loader2 className="animate-spin mb-4" size={48} />
-                <p className="text-xl font-bold">Analyzing your hard work...</p>
+                <motion.div
+                  animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="mb-6 text-indigo-400"
+                >
+                  <Loader2 size={64} className="animate-spin" />
+                </motion.div>
+                <p className="text-2xl font-black uppercase tracking-widest mb-2">Scanning for Awesome...</p>
+                <p className="text-slate-400 font-bold italic">"The AI is looking for your hard work!"</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="p-8 text-center">
+        <div className="p-10 text-center bg-bubbles">
           {!result ? (
-            <button
-              onClick={capture}
-              disabled={isProcessing}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-black text-2xl py-6 px-12 rounded-full shadow-xl transition-all transform active:scale-90 flex items-center gap-4 mx-auto"
-            >
-              <Camera size={32} />
-              TAKE PICTURE!
-            </button>
-          ) : (
             <div className="space-y-6">
-              <div className={`text-6xl flex justify-center`}>
+              <p className="text-slate-500 font-black uppercase tracking-widest text-sm">Point the camera at your work!</p>
+              <button
+                onClick={capture}
+                disabled={isProcessing}
+                className="bg-playful-gradient hover:opacity-90 text-white font-black text-2xl py-8 px-16 rounded-[2.5rem] shadow-2xl transition-all active:scale-95 flex items-center gap-4 mx-auto uppercase tracking-widest border-4 border-white/20"
+              >
+                <Camera size={32} />
+                Scan Now!
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`text-8xl flex justify-center drop-shadow-xl`}
+              >
                 {result.needs_parent_review ? (
-                  <AlertCircle className="text-blue-500" size={80} />
+                  <div className="bg-indigo-100 p-6 rounded-[2.5rem] text-indigo-600 rotate-3">
+                    <AlertCircle size={80} />
+                  </div>
                 ) : (result.isClean || result.isEmpty) ? (
-                  <CheckCircle className="text-green-500" size={80} />
+                  <div className="bg-emerald-100 p-6 rounded-[2.5rem] text-emerald-600 -rotate-3">
+                    <CheckCircle size={80} />
+                  </div>
                 ) : (
-                  <XCircle className="text-orange-500" size={80} />
+                  <div className="bg-orange-100 p-6 rounded-[2.5rem] text-orange-600 rotate-6">
+                    <XCircle size={80} />
+                  </div>
                 )}
-              </div>
+              </motion.div>
               
-              <div className="space-y-2">
-                <h4 className="text-3xl font-black text-gray-800 uppercase">
-                  {result.needs_parent_review ? "MUMMY/DADDY NEED TO LOOK! 👀" : (result.isClean || result.isEmpty) ? `GREAT JOB, ${kidName}! 🎉` : "ALMOST THERE! 🦖"}
+              <div className="space-y-3">
+                <h4 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">
+                  {result.needs_parent_review ? "Review Time!" : (result.isClean || result.isEmpty) ? `Great Job, ${kidName}! ✨` : "Almost There!"}
                 </h4>
-                <p className="text-xl text-gray-600 font-medium">{result.feedback}</p>
-                {result.needs_parent_review && (
-                  <p className="text-sm text-blue-600 font-bold bg-blue-50 py-2 px-4 rounded-full inline-block">
-                    Status: PENDING PARENT APPROVAL
-                  </p>
-                )}
-              </div>
-
-              {result.instructions && result.instructions.length > 0 && (
-                <div className="bg-blue-50 p-6 rounded-2xl text-left">
-                  <p className="font-bold text-blue-800 mb-2">Try these 2 things:</p>
-                  <ul className="space-y-2">
-                    {result.instructions.map((inst: string, i: number) => (
-                      <li key={i} className="flex items-center gap-2 text-lg font-medium text-blue-700">
-                        <span className="bg-blue-200 w-6 h-6 rounded-full flex items-center justify-center text-sm">{i + 1}</span>
-                        {inst}
-                      </li>
-                    ))}
-                  </ul>
+                <div className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl border-2 border-slate-100 shadow-sm">
+                  <p className="text-xl text-slate-600 font-bold leading-relaxed italic">"{result.feedback}"</p>
                 </div>
-              )}
+              </div>
 
               <div className="flex gap-4">
                 <button
                   onClick={() => { setResult(null); setCapturedImage(null); }}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-white hover:bg-slate-50 text-slate-400 font-black py-6 rounded-[2rem] transition-all flex items-center justify-center gap-3 uppercase text-xs tracking-widest border-2 border-slate-100 shadow-sm"
                 >
-                  <RefreshCcw size={20} />
+                  <RefreshCcw size={18} />
                   Try Again
                 </button>
                 {(result.isClean || result.isEmpty) && (
                   <button
                     onClick={handleSuccess}
-                    className="flex-[2] bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl transition-all shadow-lg text-xl"
+                    className="flex-[2] bg-playful-gradient hover:opacity-90 text-white font-black py-6 rounded-[2rem] transition-all shadow-2xl text-xl uppercase tracking-widest border-4 border-white/20 animate-bounce"
                   >
-                    CLAIM POINTS! 🚀
+                    Claim Your Reward! 🎁
                   </button>
                 )}
               </div>

@@ -3,21 +3,32 @@ import { GoogleGenAI, Type, Modality } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function textToSpeech(text: string) {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-preview-tts",
-    contents: [{ parts: [{ text: `Say cheerfully: ${text}` }] }],
-    config: {
-      responseModalities: [Modality.AUDIO],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: { voiceName: 'Kore' },
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-tts",
+      contents: [{ parts: [{ text: `Say cheerfully: ${text}` }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            // 'Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'
+            prebuiltVoiceConfig: { voiceName: 'Kore' },
+          },
         },
       },
-    },
-  });
+    });
 
-  const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-  return base64Audio;
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    return base64Audio;
+  } catch (error: any) {
+    // Handle quota exceeded (429) specifically
+    if (error?.message?.includes('429') || error?.message?.includes('Quota exceeded')) {
+      console.warn("TTS Quota exceeded. Audio will be disabled for now.");
+      return null;
+    }
+    console.error("TTS Error:", error);
+    return null;
+  }
 }
 
 export async function inspectRoom(currentImageBase64: string, referenceImageBase64: string) {
@@ -86,7 +97,10 @@ export async function inspectPlate(mealImageBase64: string) {
 export async function parseCommand(text: string) {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Analyze this command: "${text}". Determine if it is a new Rule creation, a Point Correction (e.g., "Add 5 points"), or an Override. Output the structured intent. For rules, provide a short "task_name" (e.g., "Clean Sweep") and a detailed "action" description.`,
+    contents: `Analyze this command: "${text}". 
+    Determine if it is a new Rule creation, a Point Correction (e.g., "Add 5 points"), or an Override. 
+    Output the structured intent. 
+    For rules, provide a short "task_name" (e.g., "Clean Sweep"), a detailed "action" description, a point value, a validation method, and a relevant emoji.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -105,5 +119,16 @@ export async function parseCommand(text: string) {
     }
   });
 
-  return JSON.parse(response.text);
+  const result = JSON.parse(response.text);
+  
+  // Ensure defaults for CREATE_RULE to avoid Firestore errors
+  if (result.intent === 'CREATE_RULE') {
+    result.emoji = result.emoji || '✨';
+    result.point_value = result.point_value || 5;
+    result.validation_method = result.validation_method || 'Manual';
+    result.task_name = result.task_name || result.action || 'New Mission';
+    result.action = result.action || 'Complete the mission!';
+  }
+
+  return result;
 }

@@ -14,10 +14,11 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
+import confetti from 'canvas-confetti';
 import { 
   Trophy, 
   Flame, 
-  Rocket, 
+  Target, 
   History, 
   Settings, 
   RefreshCcw, 
@@ -260,6 +261,14 @@ export default function App() {
       timestamp: serverTimestamp(),
       status: 'APPROVED'
     });
+
+    // CELEBRATION!
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#10b981']
+    });
   };
 
   const handleReset = async () => {
@@ -274,55 +283,104 @@ export default function App() {
     });
   };
 
+  const handleUpdateStats = async (updates: Partial<UserStats>) => {
+    if (!user || !stats) return;
+    await setDoc(doc(db, 'users', user.uid, 'stats', 'current'), {
+      ...stats,
+      ...updates
+    });
+  };
+
   if (!user) return <Auth />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className={cn(
+      "min-h-screen pb-20 selection:bg-indigo-100 transition-colors duration-500",
+      viewMode === 'kid' ? "bg-bubbles" : "bg-slate-50"
+    )}>
       <Auth showSignOut={viewMode === 'admin'} />
       
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white pt-12 pb-24 px-6 rounded-b-[3rem] shadow-xl relative overflow-hidden">
+      <div className={cn(
+        "text-white pt-24 sm:pt-16 pb-20 sm:pb-28 px-4 sm:px-6 rounded-b-[3rem] sm:rounded-b-[4rem] shadow-2xl relative overflow-hidden transition-all duration-700",
+        viewMode === 'kid' ? "bg-playful-gradient" : "bg-slate-900"
+      )}>
+        {/* Decorative elements for kids */}
+        {viewMode === 'kid' && (
+          <>
+            <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" 
+            />
+            <motion.div 
+              animate={{ y: [0, 20, 0] }} 
+              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute top-40 -left-10 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl" 
+            />
+          </>
+        )}
         {/* Toggle Mode for Admin */}
-        <div className="absolute top-4 left-4 z-50">
+        <div className="absolute top-6 left-4 sm:left-6 z-50">
           <button
             onClick={() => setViewMode(viewMode === 'admin' ? 'kid' : 'admin')}
-            className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all border border-white/30"
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-white/10"
           >
-            Mode: {viewMode === 'admin' ? 'Parent' : 'Kid'}
+            {viewMode === 'admin' ? 'Parent Dashboard' : 'Kid View'}
           </button>
-        </div>
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="grid grid-cols-8 gap-4 p-4">
-            {[...Array(32)].map((_, i) => (
-              <Sparkles key={i} size={24} className="animate-pulse" />
-            ))}
-          </div>
         </div>
 
         <div className="max-w-4xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-4 mb-8"
-          >
-            <div className="bg-white/20 p-4 rounded-3xl backdrop-blur-md">
-              <Rocket size={48} className="text-yellow-300" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-black tracking-tight uppercase">QUESTLY</h1>
-              <p className="text-blue-100 font-bold text-lg">{profile.kidName}'s Mission Control 🚀</p>
-            </div>
-          </motion.div>
+          {viewMode === 'kid' && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 text-center sm:text-left"
+              >
+                <motion.div 
+                  whileHover={{ scale: 1.1, rotate: 10 }}
+                  className="bg-white/20 p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] backdrop-blur-xl border border-white/20 shadow-xl animate-float"
+                >
+                  <Trophy className="text-yellow-300 drop-shadow-lg w-8 h-8 sm:w-12 sm:h-12" />
+                </motion.div>
+                <div>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                    <Sparkles className="text-yellow-300 animate-pulse" size={16} />
+                    <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase drop-shadow-lg">EARN IT</h1>
+                  </div>
+                  <p className="text-white/80 font-black text-sm sm:text-lg tracking-widest uppercase italic">
+                    Go for it, {profile.kidName}! ✨
+                  </p>
+                </div>
+              </motion.div>
 
-          {stats && (
-            <TokenJar 
-              currentPoints={stats.current_points}
-              targetGoal={stats.target_goal}
-              streakDays={stats.streak_days}
-              rewardDescription={stats.active_reward}
-              theme={stats.visual_theme}
-              kidName={profile.kidName}
-            />
+              {stats && (
+                <TokenJar 
+                  currentPoints={stats.current_points}
+                  targetGoal={stats.target_goal}
+                  streakDays={stats.streak_days}
+                  rewardDescription={stats.active_reward}
+                  theme={stats.visual_theme}
+                  kidName={profile.kidName}
+                />
+              )}
+            </>
+          )}
+          {viewMode === 'admin' && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-6 mb-10"
+            >
+              <div className="bg-indigo-500/20 p-5 rounded-[2rem] backdrop-blur-xl border border-white/10">
+                <Settings size={40} className="text-indigo-400" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-black tracking-tighter uppercase mb-1">EARNIT</h1>
+                <p className="text-slate-400 font-bold text-sm tracking-wide">Parent Command Center</p>
+              </div>
+            </motion.div>
           )}
         </div>
       </div>
@@ -380,6 +438,8 @@ export default function App() {
                 isAdmin={viewMode === 'admin'}
                 profile={profile}
                 onUpdateProfile={handleUpdateProfile}
+                stats={stats}
+                onUpdateStats={handleUpdateStats}
               />
             </motion.div>
           ) : (

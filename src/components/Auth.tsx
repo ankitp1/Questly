@@ -27,16 +27,21 @@ export function Auth({ showSignOut = true }: AuthProps) {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 p-4">
-        <div className="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-md w-full">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4 tracking-tight uppercase">QUESTLY 🚀</h1>
-          <p className="text-gray-600 mb-8 font-medium">Gamify chores, meals, and habits for your kids!</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
+        <div className="bg-white p-12 rounded-[2rem] shadow-sm border border-slate-200 text-center max-w-md w-full">
+          <div className="mb-8">
+            <h1 className="text-5xl font-black text-slate-900 mb-2 tracking-tighter uppercase">EARNIT</h1>
+            <div className="h-1 w-12 bg-indigo-600 mx-auto rounded-full" />
+          </div>
+          <p className="text-slate-500 mb-10 font-medium text-lg leading-relaxed">
+            A professional habit-building platform for modern families.
+          </p>
           <button
             onClick={login}
-            className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-105 active:scale-95"
+            className="flex items-center justify-center gap-3 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-lg shadow-slate-200"
           >
-            <LogIn size={24} />
-            Sign in with Google
+            <LogIn size={20} />
+            Continue with Google
           </button>
         </div>
       </div>

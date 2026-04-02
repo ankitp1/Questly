@@ -1,5 +1,5 @@
 {
-  "name": "Questly",
-  "description": "A scalable, gamified chore and habit tracker for kids, featuring AI vision inspection and voice instructions.",
+  "name": "Earn It",
+  "description": "A professional, gamified chore and habit tracker for families, featuring AI vision inspection and voice instructions.",
   "requestFramePermissions": ["camera"]
 }
